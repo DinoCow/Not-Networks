@@ -190,11 +190,10 @@ struct sr_rt *sr_get_longest_match(struct sr_instance* sr, uint32_t ip)
         /* the ip matches the entry addr */
         if(((rt_entry->mask.s_addr & rt_entry->dest.s_addr) == (ip & rt_entry->mask.s_addr)))
         {
-            printf("matched addr");
+        
             /*the mask is longer then the current matched entry*/
             if((longest_match_mask <= rt_entry->mask.s_addr))
             { 
-                printf("got here");
                 cur_match = rt_entry;
                 longest_match_mask = rt_entry->mask.s_addr;
             } 

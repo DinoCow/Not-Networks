@@ -280,7 +280,7 @@ void send_arp_request(struct sr_instance *sr, struct sr_arpreq *req){
     reply.ar_pro = htons(ethertype_ip); /*ip addresses*/
     reply.ar_hln = ETHER_ADDR_LEN;
     reply.ar_pln = sizeof(uint32_t);
-    reply.ar_op = htons(arp_op_reply);
+    reply.ar_op = htons(arp_op_request);
     reply.ar_sip = interface->ip;
     reply.ar_tip = req->ip;
 
@@ -289,3 +289,4 @@ void send_arp_request(struct sr_instance *sr, struct sr_arpreq *req){
     broadcast_arq(sr, reply, interface);
 
 }
+
