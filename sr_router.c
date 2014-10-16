@@ -240,8 +240,14 @@ int check_ip(uint8_t * packet, unsigned int len, struct sr_if *interface){
     return 0;
   }
 
-  /* checksum */
   struct sr_ip_hdr *ip_hdr = get_ip_hdr(packet);
+  /* check the length of packet against the len in the header */
+  if (len != sizeof(struct sr_ethernet_hdr) + ntohs(ip_hdr->ip_len))
+  {
+    return 0;
+  }
+
+  /* checksum */
   uint16_t temp_cksum = ip_hdr->ip_sum;
   ip_hdr->ip_sum = 0;
   uint16_t calculated_cksum = cksum(ip_hdr, ip_hdr->ip_hl * 4);
@@ -250,12 +256,6 @@ int check_ip(uint8_t * packet, unsigned int len, struct sr_if *interface){
     return 0;
   }
 
-  /* check the length of packet against the len in the header */
-  if (len != sizeof(struct sr_ethernet_hdr) + ntohs(ip_hdr->ip_len))
-  {
-    return 0;
-  }
-    
   return 1;
 }
 
@@ -282,6 +282,7 @@ void handle_ip(struct sr_instance* sr,
 
       default:
         /*send port unreachable */
+        send_icmp();
     }
 
   }
@@ -309,7 +310,7 @@ void route_packet(struct sr_instance* sr,
     ip_hdr->ip_sum = cksum(ip_hdr, ip_hdr->ip_hl * 4);
     
     /* make a new packet since the packet is lent */   
-    uint8_t new_packet = malloc(len);
+    uint8_t *new_packet = malloc(len);
     memcpy(new_packet, ip_hdr, len);
     encap_and_send(sr, interface, ip_hdr->ip_dst, len, new_packet);
     
@@ -318,9 +319,12 @@ void route_packet(struct sr_instance* sr,
 
 
 /*-- sending --*/
+void send_icmp(){
+
+}
 
 void encap_and_send(struct sr_instance* sr,
-          char* interface, 
+          struct sr_if* interface, 
           uint32_t target_ip,  
           unsigned int len,
           uint8_t* packet)

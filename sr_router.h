@@ -79,7 +79,6 @@ int check_arp(uint8_t * packet, unsigned int len, struct sr_if *interface);
 void handle_arp(struct sr_instance* sr, uint8_t * packet, struct sr_if *interface);
 void handle_arp_reply(struct sr_instance* sr, struct sr_arp_hdr *arp_hdr, struct sr_if *interface);
 void handle_arp_request(struct sr_instance* sr, struct sr_arp_hdr *arp_hdr, struct sr_if *interface);
-void encap_and_send(struct sr_instance* sr, char* interface, uint32_t target_ip, unsigned int len, uint8_t * packet);
 void broadcast_arq(struct sr_instance* sr, struct sr_arp_hdr arp_hdr, struct sr_if *interface);
 
 /*-- ip --*/
@@ -88,4 +87,7 @@ int check_ip(uint8_t * packet, unsigned int len, struct sr_if *interface);
 void route_packet(struct sr_instance* sr, uint8_t * packet, struct sr_if *interface);
 
 /*-- sending --*/
+void encap_and_send(struct sr_instance* sr, struct sr_if* interface, uint32_t target_ip, unsigned int len, uint8_t * packet);
+void send_icmp();
+
 #endif /* SR_ROUTER_H */
