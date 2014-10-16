@@ -31,11 +31,11 @@ uint8_t ip_protocol(uint8_t *buf) {
 }
 
 struct sr_ip_hdr *get_ip_hdr(uint8_t *buf){
-  return (struct sr_ip_hdr *) (buf + sizeof(struct sr_ethernet_hdr));
+  return (struct sr_ip_hdr *) (buf + sizeof( sr_ethernet_hdr_t));
 }
 
 struct sr_arp_hdr *get_arp_hdr(uint8_t *buf){
-  return (struct sr_arp_hdr *) (buf + sizeof(struct sr_ethernet_hdr));
+  return (struct sr_arp_hdr *) (buf + sizeof(sr_ethernet_hdr_t));
 }
 
 /* Prints out formatted Ethernet address, e.g. 00:11:22:33:44:55 */
