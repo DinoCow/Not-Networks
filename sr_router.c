@@ -141,7 +141,7 @@ void handle_arp(struct sr_instance* sr,
 {
 
   /*get the hdr*/
-  struct sr_arp_hdr *arp_hdr = (struct sr_arp_hdr *) (packet + sizeof(struct sr_ethernet_hdr));
+  struct sr_arp_hdr *arp_hdr = get_arp_hdr(packet);
 
   /* determine if it's a request or a reply */
   if (ntohs(arp_hdr->ar_op) == arp_op_request)
@@ -232,27 +232,40 @@ void broadcast_arq(struct sr_instance* sr, struct sr_arp_hdr arp_hdr, struct sr_
 }
 
 /*-- ip --*/
-int handle_ip(struct sr_instance* sr,
-        uint8_t * packet/* lent */,
-        struct sr_if *interface)
-{
-  return 1;
-}
-
-void check_ip(uint8_t * packet, unsigned int len, struct sr_if *interface){
+int check_ip(uint8_t * packet, unsigned int len, struct sr_if *interface){
   
   /* check to see if packet is large enough for ip + ethernet hdr */
-  if (len < (sizeof(struct sr_ip_hdr) + sizeof(struct sr_ethernet_hdr))){
+  if (len < (sizeof(struct sr_ip_hdr) + sizeof(struct sr_ethernet_hdr)))
+  {
     return 0;
   }
 
   struct sr_ip_hdr *ip_hdr = get_ip_hdr(packet);
-  
-  /* Validate checksum. */
-  received_cksum = ip_hdr->ip_sum;
-  ip_hdr->ip_sum = 0;
+  /* get the checksum */
+  uint16_t calculated_cksum = cksum(ip_hdr, ip_hdr->ip_hl * 4);
+  if (calculated_cksum != ip_hdr->ip_sum)
+  {
+    return 0;
+  }
+
+  /* check the length of packet against the len in the header */
+  if (len != sizeof(struct sr_ethernet_hdr) + ntohs(ip_hdr->ip_len)){
+    return 0;
+  }
+    
+  return 1;
+}
+
+void handle_ip(struct sr_instance* sr,
+        uint8_t * packet/* lent */,
+        struct sr_if *interface)
+{
+
+  struct sr_ip_hdr *ip_hdr = get_ip_hdr(packet);
 
 }
+
+
 
 
 /*-- sending --*/
