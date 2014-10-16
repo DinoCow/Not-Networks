@@ -240,16 +240,19 @@ int check_ip(uint8_t * packet, unsigned int len, struct sr_if *interface){
     return 0;
   }
 
+  /* checksum */
   struct sr_ip_hdr *ip_hdr = get_ip_hdr(packet);
-  /* get the checksum */
+  uint16_t temp_cksum = ip_hdr->ip_sum;
+  ip_hdr->ip_sum = 0;
   uint16_t calculated_cksum = cksum(ip_hdr, ip_hdr->ip_hl * 4);
-  if (calculated_cksum != ip_hdr->ip_sum)
+  if (calculated_cksum != temp_cksum)
   {
     return 0;
   }
 
   /* check the length of packet against the len in the header */
-  if (len != sizeof(struct sr_ethernet_hdr) + ntohs(ip_hdr->ip_len)){
+  if (len != sizeof(struct sr_ethernet_hdr) + ntohs(ip_hdr->ip_len))
+  {
     return 0;
   }
     
@@ -263,9 +266,55 @@ void handle_ip(struct sr_instance* sr,
 
   struct sr_ip_hdr *ip_hdr = get_ip_hdr(packet);
 
+  /* Forward or not*/
+  if (ip_hdr->ip_dst != interface->ip) 
+  {
+    route_packet(sr, packet, interface);
+  } else 
+  {
+   
+    /*using a switch for future addition of protocols*/
+    switch(ip_hdr->ip_p)
+    {
+      case ip_protocol_icmp:
+        
+      break;
+
+      default:
+        /*send port unreachable */
+    }
+
+  }
 }
 
+void route_packet(struct sr_instance* sr,
+        uint8_t * packet/* lent */,
+        struct sr_if *interface)
+{
+    struct sr_ip_hdr *ip_hdr = get_ip_hdr(packet);
 
+    if (ip_hdr->ip_ttl <= 1)
+    { 
+      /*TODO: */
+      /*send ICMP Time exceeded */
+    } else {
+      /* decrement it, if it's >= 2 */
+      ip_hdr->ip_ttl--;
+    } 
+    
+    unsigned int len = ntohs(ip_hdr->ip_len);
+    
+    /* redo the checksums */
+    ip_hdr->ip_sum = 0;
+    ip_hdr->ip_sum = cksum(ip_hdr, ip_hdr->ip_hl * 4);
+    
+    /* make a new packet since the packet is lent */   
+    uint8_t new_packet = malloc(len);
+    memcpy(new_packet, ip_hdr, len);
+    encap_and_send(sr, interface, ip_hdr->ip_dst, len, new_packet);
+    
+    free(new_packet);
+}
 
 
 /*-- sending --*/
