@@ -117,8 +117,8 @@ void sr_handlepacket(struct sr_instance* sr,
 
 /*-- ARP --*/
  /*
- * check the arp to see if it is valid, if it is return 1
- * else return 0
+ * Check if an arp request is valid or not
+ * Return 1 if valid, 0 otherwise.
  */
 int check_arp(uint8_t * packet, unsigned int len, struct sr_if *interface)
 {
@@ -140,7 +140,9 @@ int check_arp(uint8_t * packet, unsigned int len, struct sr_if *interface)
   return 1;
 }
 
-
+/*
+ * Send the arp to the correct function
+ */
 void handle_arp(struct sr_instance* sr,
         uint8_t * packet/* lent */,
         struct sr_if *interface ) 
@@ -157,6 +159,9 @@ void handle_arp(struct sr_instance* sr,
   }
 }
  
+/*
+ * handle cache operations that arp involves
+ */
 void handle_arp_cache_ops(struct sr_instance* sr, 
           struct sr_arp_hdr *arp_hdr, 
           struct sr_if *interface) 
@@ -188,6 +193,9 @@ void handle_arp_cache_ops(struct sr_instance* sr,
   }
 }
 
+/*
+ * create a arp reply and send it
+ */
 void handle_arp_request(struct sr_instance* sr, 
           struct sr_arp_hdr *arp_hdr, 
           struct sr_if *interface
@@ -209,9 +217,12 @@ void handle_arp_request(struct sr_instance* sr,
   encap_and_send(sr, arp_hdr->ar_sip, sizeof(sr_arp_hdr_t), (uint8_t *) &reply, htons(ethertype_arp));
 } 
 
-
-
 /*-- ip --*/
+
+/*
+ * Check if the ip packet is valid
+ * Return 1 if valid, 0 otherwise
+ */
 int check_ip(uint8_t * packet, unsigned int len, struct sr_if *interface)
 {
   
@@ -240,6 +251,9 @@ int check_ip(uint8_t * packet, unsigned int len, struct sr_if *interface)
   return 1;
 }
 
+/*
+ *
+ */
 void handle_ip(struct sr_instance* sr,
         uint8_t * packet/* lent */,
         struct sr_if *interface)
@@ -353,40 +367,37 @@ void send_icmp(struct sr_instance* sr,
 void create_icmp_t3(struct sr_instance *sr, struct sr_ip_hdr *packet, uint8_t type, uint8_t code, struct sr_if *interface)
 {
   /* dont use pointer here, dont have to deal with malloc */
-  struct sr_icmp_hdr icmp_hdr;
-  struct sr_ip_hdr ip_hdr;
-
+  struct sr_icmp_t3_hdr *icmp_hdr;
+  struct sr_ip_hdr *ip_hdr;
+  unsigned int len = sizeof(sr_ip_hdr_t) + sizeof(sr_icmp_t3_hdr_t);
+  
   uint8_t *new_packet;
+  new_packet = malloc(len);
+  icmp_hdr = (sr_icmp_t3_hdr_t *) ((uint8_t *)new_packet + sizeof(sr_ip_hdr_t));
+  ip_hdr = (sr_ip_hdr_t *) new_packet;
 
-  icmp_hdr.icmp_type = type; 
-  icmp_hdr.icmp_code = code;
-  icmp_hdr.icmp_sum = 0;
+  icmp_hdr->icmp_type = type; 
+  icmp_hdr->icmp_code = code;
+  icmp_hdr->icmp_sum = 0;
+  memcpy((uint8_t *)icmp_hdr + sizeof(sr_icmp_t3_hdr_t) - ICMP_DATA_SIZE , packet, ICMP_DATA_SIZE);
 
   /* ip_hdr */
-  ip_hdr.ip_hl = 5;
-  ip_hdr.ip_v = 4;
-  ip_hdr.ip_tos = 0;
-  ip_hdr.ip_id = packet->ip_id;
-  ip_hdr.ip_off = htons(IP_DF);
-  ip_hdr.ip_ttl = DEFAULT_TTL;
-  ip_hdr.ip_p = ip_protocol_icmp;
-  ip_hdr.ip_dst = packet->ip_src;
-  ip_hdr.ip_src = interface->ip;
-  ip_hdr.ip_sum = 0;
-  
+  ip_hdr->ip_hl = 5;
+  ip_hdr->ip_v = 4;
+  ip_hdr->ip_tos = 0;
+  ip_hdr->ip_id = packet->ip_id;
+  ip_hdr->ip_off = htons(IP_DF);
+  ip_hdr->ip_ttl = DEFAULT_TTL;
+  ip_hdr->ip_p = ip_protocol_icmp;
+  ip_hdr->ip_dst = packet->ip_src;
+  ip_hdr->ip_src = interface->ip;
+  ip_hdr->ip_sum = 0;
+  ip_hdr->ip_len = htons(len);  
+  ip_hdr->ip_sum = cksum(ip_hdr, sizeof(sr_ip_hdr_t));
 
-  unsigned int len = (ip_hdr.ip_hl * 4) + sizeof(sr_icmp_hdr_t);
-  ip_hdr.ip_len = htons(len);
-  ip_hdr.ip_sum = cksum(&ip_hdr, ip_hdr.ip_hl * 4);
+  icmp_hdr->icmp_sum = cksum(new_packet + sizeof(sr_ip_hdr_t), sizeof(sr_icmp_t3_hdr_t));
 
-  new_packet = malloc(len);
-  memcpy(new_packet, &ip_hdr, ip_hdr.ip_hl * 4);
-
-  icmp_hdr.icmp_sum = cksum(new_packet + ip_hdr.ip_hl * 4, sizeof(icmp_hdr));
- 
-  memcpy(new_packet + ip_hdr.ip_hl * 4, &icmp_hdr, sizeof(icmp_hdr));
-
-  encap_and_send(sr, ip_hdr.ip_dst, len, new_packet, htons(ethertype_ip));
+  encap_and_send(sr, ip_hdr->ip_dst, len, new_packet, htons(ethertype_ip));
   free(new_packet);
 }
 
