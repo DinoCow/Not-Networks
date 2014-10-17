@@ -175,8 +175,10 @@ void sr_print_routing_entry(struct sr_rt* entry)
     printf("%s\n",entry->interface);
 
 } /* -- sr_print_routing_entry -- */
-    /* data */
-
+ 
+/*
+ * return the route table entry with the longest prefix match
+ */
 struct sr_rt *sr_get_longest_match(struct sr_instance* sr, uint32_t ip)
 {
     struct sr_rt *cur_match = 0;

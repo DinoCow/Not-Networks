@@ -255,6 +255,9 @@ void *sr_arpcache_timeout(void *sr_ptr) {
     return NULL;
 }
 
+/*
+ * handler for arpreqs, if the req have been handled 5 time, send icmp and destory req.
+ */
 void handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req) {
     if (difftime(time(0), req->sent) > 1.0)
     {
@@ -277,22 +280,25 @@ void handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req) {
     }
 }
 
+/*
+ * create a arp request and broadcast it
+ */
 void send_arp_request(struct sr_instance *sr, struct sr_arpreq *req){
 
-    struct sr_arp_hdr reply;
+    struct sr_arp_hdr request;
     struct sr_if *interface = sr_get_interface(sr, req->packets->iface);
     
-    reply.ar_hrd = htons(arp_hrd_ethernet);
-    reply.ar_pro = htons(ethertype_ip); /*ip addresses*/
-    reply.ar_hln = ETHER_ADDR_LEN;
-    reply.ar_pln = sizeof(uint32_t);
-    reply.ar_op = htons(arp_op_request);
-    reply.ar_sip = interface->ip;
-    reply.ar_tip = req->ip;
+    request.ar_hrd = htons(arp_hrd_ethernet);
+    request.ar_pro = htons(ethertype_ip); /*ip addresses*/
+    request.ar_hln = ETHER_ADDR_LEN;
+    request.ar_pln = sizeof(uint32_t);
+    request.ar_op = htons(arp_op_request);
+    request.ar_sip = interface->ip;
+    request.ar_tip = req->ip;
 
-    memcpy(reply.ar_sha, interface->addr, ETHER_ADDR_LEN);
+    memcpy(request.ar_sha, interface->addr, ETHER_ADDR_LEN);
 
-    broadcast_arq(sr, reply, interface);
+    broadcast_arq(sr, request, interface);
 
 }
 
