@@ -121,7 +121,9 @@ void sr_handlepacket(struct sr_instance* sr,
  * Check if an arp request is valid or not
  * Return 1 if valid, 0 otherwise.
  */
-int check_arp(uint8_t * packet, unsigned int len, struct sr_if *interface)
+int check_arp(uint8_t * packet,
+     unsigned int len, 
+     struct sr_if *interface)
 {
 
   /* check to see if packet is large enough for arp + ethernet hdr*/
@@ -224,7 +226,9 @@ void handle_arp_request(struct sr_instance* sr,
  * Check if the ip packet is valid
  * Return 1 if valid, 0 otherwise
  */
-int check_ip(uint8_t * packet, unsigned int len, struct sr_if *interface)
+int check_ip(uint8_t * packet, 
+  unsigned int len, 
+  struct sr_if *interface)
 {
   
   /* check to see if packet is large enough for ip + ethernet hdr */
@@ -376,7 +380,11 @@ void send_icmp(struct sr_instance* sr,
 /*
  * create and send a t3 icmp
  */
-void create_icmp_t3(struct sr_instance *sr, struct sr_ip_hdr *packet, uint8_t type, uint8_t code, struct sr_if *interface)
+void create_icmp_t3(struct sr_instance *sr,
+              struct sr_ip_hdr *packet, 
+              uint8_t type,
+              uint8_t code, 
+              struct sr_if *interface)
 {
   /* dont use pointer here, dont have to deal with malloc */
   struct sr_icmp_t3_hdr *icmp_hdr;
@@ -416,7 +424,10 @@ void create_icmp_t3(struct sr_instance *sr, struct sr_ip_hdr *packet, uint8_t ty
 /*
  * create an regular icmp response and send the icmp. 
  */
-void create_icmp(struct sr_instance *sr, struct sr_ip_hdr *packet, uint8_t type, uint8_t code)
+void create_icmp(struct sr_instance *sr, 
+              struct sr_ip_hdr *packet, 
+              uint8_t type, 
+              uint8_t code)
 {
   /*copy the packet*/
   struct sr_ip_hdr *ip_hdr = packet;  
@@ -500,7 +511,9 @@ void encap_and_send(struct sr_instance* sr,
 /*
  * broadcast an arq reply to all ports
  */
-void broadcast_arq(struct sr_instance* sr, struct sr_arp_hdr arp_hdr, struct sr_if *interface)
+void broadcast_arq(struct sr_instance* sr, 
+              struct sr_arp_hdr arp_hdr, 
+              struct sr_if *interface)
 {
   struct sr_rt *rt_entry = sr_get_longest_match(sr, arp_hdr.ar_tip);
 
