@@ -83,7 +83,8 @@ void sr_handlepacket(struct sr_instance* sr,
   printf("###########################################\n");
   print_hdrs(packet, len);*/
 
-  /* len of packet has to be at least the size of the header */
+
+  /* packet need to be at least be as large as a ethernet header. */
   if (len > sizeof(sr_ethernet_hdr_t))
   {
     struct sr_if *iface = sr_get_interface(sr, interface);
@@ -233,7 +234,7 @@ int check_ip(uint8_t * packet, unsigned int len, struct sr_if *interface)
   }
 
   struct sr_ip_hdr *ip_hdr = get_ip_hdr(packet);
-  /* check the length of packet against the len in the header */
+  /* check the length of the packet to the len in the ip header */
   if (len != sizeof(struct sr_ethernet_hdr) + ntohs(ip_hdr->ip_len))
   {
     return 0;
@@ -358,7 +359,7 @@ void send_icmp(struct sr_instance* sr,
       struct sr_rt *rt_entry = sr_get_longest_match(sr, ip_hdr->ip_src);
       if (rt_entry == 0) 
       {
-        /* no idea where to send this back to??*/
+        /* no idea where to send this back to, so drop it*/
         return;
       }
 
@@ -504,7 +505,7 @@ void broadcast_arq(struct sr_instance* sr, struct sr_arp_hdr arp_hdr, struct sr_
   struct sr_rt *rt_entry = sr_get_longest_match(sr, arp_hdr.ar_tip);
 
   if(rt_entry == 0){
-    /*printf("should fail if found none");*/
+    /*if the ip is not on the list then drop the arp*/
     return;
   }
   /* build the packet */
