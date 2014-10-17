@@ -127,6 +127,7 @@ struct sr_ip_hdr
 #define	IP_MF 0x2000			/* more fragments flag */
 #define	IP_OFFMASK 0x1fff		/* mask for fragmenting bits */
     uint8_t ip_ttl;			/* time to live */
+#define DEFAULT_TTL 64
     uint8_t ip_p;			/* protocol */
     uint16_t ip_sum;			/* checksum */
     uint32_t ip_src, ip_dst;	/* source and dest address */
@@ -148,7 +149,17 @@ struct sr_ethernet_hdr
 } __attribute__ ((packed)) ;
 typedef struct sr_ethernet_hdr sr_ethernet_hdr_t;
 
+enum sr_icmp_type {
+  icmp_echo_reply = 0,
+  icmp_unreachable = 3,
+  icmp_echo_request =8,
+  icmp_time_exceeded = 11
+};
 
+enum sr_icmp_code {
+  icmp_host_unreachable = 1,
+  icmp_port_unreachable = 3
+};
 
 enum sr_ip_protocol {
   ip_protocol_icmp = 0x0001,

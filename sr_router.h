@@ -87,7 +87,9 @@ void route_packet(struct sr_instance* sr, uint8_t * packet, struct sr_if *interf
 
 /*-- sending --*/
 void encap_and_send(struct sr_instance* sr, uint32_t target_ip, unsigned int len, uint8_t * packet, uint16_t ethertype);
-void send_icmp();
+void send_icmp(struct sr_instance* sr, uint8_t* packet, uint8_t type, uint8_t code);
+struct sr_ip_hdr *create_icmp_t3(struct sr_ip_hdr *packet, uint8_t code);
+struct sr_ip_hdr *create_icmp(struct sr_ip_hdr *packet, uint8_t type);
 void broadcast_arq(struct sr_instance* sr, struct sr_arp_hdr arp_hdr, struct sr_if *interface);
 
 #endif /* SR_ROUTER_H */

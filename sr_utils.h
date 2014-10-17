@@ -35,7 +35,7 @@ uint8_t ip_protocol(uint8_t *buf);
 
 struct sr_ip_hdr *get_ip_hdr(uint8_t *buf);
 struct sr_arp_hdr *get_arp_hdr(uint8_t *buf);
-
+struct sr_icmp_hdr *get_icmp_hdr(uint8_t * buf);
 
 void print_addr_eth(uint8_t *addr);
 void print_addr_ip(struct in_addr address);
